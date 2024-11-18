@@ -1,0 +1,5 @@
+model_name: 'gpt2'
+toxicity_model_name: 'unitary/toxic-bert'
+max_length: 50
+device: 'cuda'  # or 'cpu'
+seed: 42

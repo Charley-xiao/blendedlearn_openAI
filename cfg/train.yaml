@@ -1,0 +1,19 @@
+model_name: 'gpt2'
+toxicity_model_names:
+  toxicity: 'unitary/toxic-bert'
+  hate_speech: 'Hate-speech-CNERG/dehatebert-mono-english'
+  profanity: 'microsoft/Multilingual-MiniLM-L12-H384'
+learning_rate: 1e-5
+batch_size: 4
+forward_batch_size: 1
+num_epochs: 3
+max_length: 50
+device: 'cuda'  # or 'cpu'
+log_with: 'tensorboard'
+logdir: './ppo_logs'
+seed: 42
+ethical_guidelines:
+  - "hate speech"
+  - "harassment"
+  - "discrimination"
+  - "profanity"
