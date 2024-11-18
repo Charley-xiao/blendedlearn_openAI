@@ -1,1 +1,1 @@
-# blendedlearn_openAI
+# blendedlearning_openAI
