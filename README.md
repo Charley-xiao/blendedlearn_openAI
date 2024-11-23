@@ -1,4 +1,6 @@
-# blendedlearn_openAI
+# Generative AI with LLMs and Reinforcement Learning - OpenAI Project - Blended Learning
+
+## Introduction Website and Meeting Notes
 
 Generative AI with LLMs and Reinforcement Learning - OpenAI Project
 https://touch.larksuite.com/docx/NoxCdt8Q5o6Qh0xDBc1uqlThsfd
