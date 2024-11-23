@@ -1,0 +1,230 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "annotations",
+  "dataset_name": "toxigen-data",
+  "dataset_size": 21940049,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/toxigen/toxigen-data@ea082a8973a287097b17973343576e0c8da8eb3b/annotations/train-00000-of-00001.parquet": {
+      "num_bytes": 3350653,
+      "checksum": null
+    }
+  },
+  "download_size": 3350653,
+  "features": {
+    "Input.prompt": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Input.text": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Input.time": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Input.generation_method": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Input.prompt_label": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Input.target_group": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Input.binary_prompt_label": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "Answer.annotatorAge": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Answer.annotatorGender": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Answer.annotatorMinority": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Answer.annotatorPolitics.1": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.annotatorPolitics.2": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.annotatorPolitics.3": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.annotatorPolitics.4": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.annotatorPolitics.5": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.annotatorRace": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Answer.factSelect": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Answer.framingQ": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Answer.inGroup.on": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.ingroup.1": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.ingroup.2": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.ingroup.3": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.intent.1": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.intent.2": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.intent.3": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.intent.4": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.intent.5": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.lewd.1": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.lewd.2": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.lewd.3": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.refTarget": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Answer.stateFrame": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Answer.stateGroup": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Answer.stereo.1": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.stereo.2": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.stereo.3": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.toAI.1": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.toAI.2": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.toAI.3": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.toAI.4": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.toAI.5": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.toPER.1": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.toPER.2": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.toPER.3": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.toPER.4": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.toPER.5": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.writer.1": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "Answer.writer.2": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "HashedWorkerId": {
+      "dtype": "int64",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 25290702,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 21940049,
+      "num_examples": 27450,
+      "dataset_name": "toxigen-data"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
