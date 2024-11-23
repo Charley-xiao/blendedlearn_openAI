@@ -1,0 +1,13 @@
+'''
+  This dataset is called TOXIGEN from Microsoft, which contain hate speeches.
+
+  I already download three files of this dataset from huggingface.
+  The first file is called 'toxigen_annotated'.
+  The second file is called 'toxigen_annotations'.
+  The third file is called 'toxigen_prompts'.
+  And the datasets.ipynb is the python code to load, describe, and save the dataset.
+
+  The websites below are the GitHub website and the HuggingFace website for this dataset.
+  Github: https://github.com/microsoft/ToxiGen?tab=readme-ov-file
+  Huggingface: https://huggingface.co/datasets/toxigen/toxigen-data
+'''
