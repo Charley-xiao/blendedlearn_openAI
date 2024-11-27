@@ -1,5 +1,9 @@
 # Hate Speech and Offensive Language Data
 
+The dataset is from Github.
+
+Website: https://github.com/t-davidson/hate-speech-and-offensive-language
+
 The data are stored as a CSV and each data file contains 5 columns:
 
 `count` = number of CrowdFlower users who coded each tweet (min is 3, sometimes more users coded a tweet when judgments were determined to be unreliable by CF).
