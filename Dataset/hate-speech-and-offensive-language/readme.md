@@ -1,6 +1,6 @@
 # Hate Speech and Offensive Language Data
 
-The data are stored as a CSV and as a pickled pandas dataframe (Python 2.7). Each data file contains 5 columns:
+The data are stored as a CSV and each data file contains 5 columns:
 
 `count` = number of CrowdFlower users who coded each tweet (min is 3, sometimes more users coded a tweet when judgments were determined to be unreliable by CF).
 
