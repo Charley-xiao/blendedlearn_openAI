@@ -1,4 +1,4 @@
-# Data
+# Hate Speech and Offensive Language Data
 
 The data are stored as a CSV and as a pickled pandas dataframe (Python 2.7). Each data file contains 5 columns:
 
