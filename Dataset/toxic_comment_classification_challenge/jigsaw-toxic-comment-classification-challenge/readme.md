@@ -1,20 +1,13 @@
-# Hate Speech and Offensive Language Data
+# Toxic Comment Classification Challenge Data
 
-The dataset is from Github.
+The dataset is from Kaggle.
 
-Website: https://github.com/t-davidson/hate-speech-and-offensive-language
+Website: https://www.kaggle.com/competitions/jigsaw-toxic-comment-classification-challenge
 
-The data are stored as a CSV and each data file contains 5 columns:
+The data are stored as a CSV and each data file contains 8 columns:
 
-`count` = number of CrowdFlower users who coded each tweet (min is 3, sometimes more users coded a tweet when judgments were determined to be unreliable by CF).
+`id` = encoding of the text data
 
-`hate_speech` = number of CF users who judged the tweet to be hate speech.
+`comment_text` = the text data
 
-`offensive_language` = number of CF users who judged the tweet to be offensive.
-
-`neither` = number of CF users who judged the tweet to be neither offensive nor non-offensive.
-
-`class` = class label for majority of CF users.
-  0 - hate speech
-  1 - offensive  language
-  2 - neither
+`toxic`, 'severe_toxic', 'obscene', 'threat', `insult`, 'identity_hate' = the different types of text message
