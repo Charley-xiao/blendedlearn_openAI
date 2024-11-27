@@ -1,4 +1,4 @@
-# Toxigen Data
+# ToxiGen Data
 
 The dataset is from Huggingface.
 
