@@ -1,5 +1,9 @@
 # Toxigen Data
 
+The dataset is from Huggingface.
+
+Website: https://huggingface.co/datasets/toxigen/toxigen-data
+
 The data are stored as two CSV files, and each data file contains 14 columns:
 
 However, most of these features are meaningless when training toxicity detectors. The following is some useful features.
