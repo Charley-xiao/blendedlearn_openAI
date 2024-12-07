@@ -28,7 +28,7 @@ class RewardModel:
             self.tokenizers[aspect] = AutoTokenizer.from_pretrained(model_name)
             self.models[aspect] = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
 
-    def compute_reward(self, responses: List[str]) -> List[float]:
+    def compute_reward(self, responses: List[str]):
         rewards = []
         for response in responses:
             aspect_scores = {}
@@ -41,7 +41,7 @@ class RewardModel:
                 score = label_score.item()
                 aspect_scores[aspect] = score
             reward = self._combine_aspect_scores(aspect_scores)
-            rewards.append(reward)
+            rewards.append(torch.tensor(reward))
         return rewards
 
     def _get_continuous_score(self, score: float, label: str) -> float:
@@ -91,12 +91,13 @@ class SafeLanguageModelTrainer:
         self.base_model = AutoModelForCausalLMWithValueHead.from_pretrained(config['model_name']).to(self.device)
         self.model = AutoModelForCausalLMWithValueHead.from_pretrained(config['model_name']).to(self.device)
         self.model.config.eos_token_id = self.tokenizer.eos_token_id
-        self.model.generation_config = self.model.config
+        # self.model.generation_config = self.model.config
         self.base_model.config.eos_token_id = self.tokenizer.eos_token_id
         self.reward_model = RewardModel(config['toxicity_model_names'], self.device)
         self.ppo_config = PPOConfig(
             learning_rate=float(config['learning_rate']),
-            batch_size=int(config['batch_size'])
+            batch_size=int(config['batch_size']),
+            mini_batch_size=int(config['mini_batch_size'])
         )
         self.ppo_trainer = PPOTrainer(self.ppo_config, self.base_model, self.model, self.tokenizer)
         self.constitutional_ai = ConstitutionalAI(ethical_guidelines=config['ethical_guidelines'])
@@ -152,19 +153,26 @@ class SafeLanguageModelTrainer:
         for prompt_tensor, attention_mask in zip(prompt_tensors, attention_masks):
             # Remove batch dimension if needed
             prompt_tensor = prompt_tensor.squeeze(0)
+            print(prompt_tensor.size(0))
+            max_length = 1024
+            if prompt_tensor.size(0) > max_length:
+                response_tensors.append(prompt_tensor)
+                print('Skipped')
+                continue
             
             # Pass attention mask to generate
             response = self.ppo_trainer.generate(
                 query_tensor=prompt_tensor, 
-                max_length=self.config['max_length'], 
                 eos_token_id=self.tokenizer.eos_token_id, 
                 pad_token_id=self.tokenizer.eos_token_id,
-                attention_mask=attention_mask
+                attention_mask=attention_mask,
+                max_length=1024
             )
-            response_tensors.append(response.squeeze())
+            response_tensors.append(response)
+            print(response.shape)
     
         # Decode and process responses
-        responses = [self.tokenizer.decode(response_tensor, skip_special_tokens=True) for response_tensor in response_tensors]
+        responses = [self.tokenizer.decode(response_tensor.squeeze(), skip_special_tokens=True) for response_tensor in response_tensors]
     
         safe_responses = []
         for response in responses:
@@ -174,12 +182,25 @@ class SafeLanguageModelTrainer:
     
         # Compute rewards and train
         rewards = self.reward_model.compute_reward(safe_responses)
+        print(rewards)
+        # prompt_tensors = [prompt_tensor.squeeze(0) for prompt_tensor in prompt_tensors]
+        # Pad prompt_tensors to have the same length with response_tensors
+        # torch.Size([1, 358]) -> torch.Size([1, 1024])
+        prompt_tensors = [torch.cat([prompt_tensor, torch.zeros(1, 1024 - prompt_tensor.size(1)).long().to(self.device)], dim=1) for prompt_tensor in prompt_tensors]
+        print(prompt_tensors)
+        print(prompt_tensors[0].shape)
+        print(response_tensors)
+        print(response_tensors[0].shape)
+        prompt_tensors = [prompt_tensor.squeeze(0) for prompt_tensor in prompt_tensors]
+        response_tensors = [response_tensor.squeeze(0) for response_tensor in response_tensors]
+        print(prompt_tensors)
+        print(response_tensors)
         self.ppo_trainer.step(prompt_tensors, response_tensors, rewards)
     
         # Log responses
         for prompt, response, reward in zip(prompts, safe_responses, rewards):
-            print(f"Prompt: {prompt}")
-            print(f"Response: {response}")
+            # print(f"Prompt: {prompt}")
+            # print(f"Response: {response}")
             print(f"Reward: {reward:.4f}\n")
 
 
