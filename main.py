@@ -1,5 +1,5 @@
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoModelForCausalLM
 from trl import PPOTrainer, PPOConfig, AutoModelForCausalLMWithValueHead
 from datasets import load_dataset
 import random
@@ -21,27 +21,34 @@ def set_seed(seed):
 
 class RewardModel:
     def __init__(self, model_names: Dict[str, str], device: str):
-        self.classifiers = {}
+        self.device = torch.device("cuda" if device == 'cuda' and torch.cuda.is_available() else "cpu")
+        self.models = {}
+        self.tokenizers = {}
         for aspect, model_name in model_names.items():
-            self.classifiers[aspect] = pipeline('text-classification', model=model_name, device=0 if device == 'cuda' else -1)
+            self.tokenizers[aspect] = AutoTokenizer.from_pretrained(model_name)
+            self.models[aspect] = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
 
     def compute_reward(self, responses: List[str]) -> List[float]:
         rewards = []
         for response in responses:
             aspect_scores = {}
-            for aspect, classifier in self.classifiers.items():
-                result = classifier(response[:512])[0]
-                score = self._get_continuous_score(result)
+            for aspect, model in self.models.items():
+                tokenizer = self.tokenizers[aspect]
+                inputs = tokenizer(response, return_tensors="pt", truncation=True, max_length=512).to(self.device)
+                outputs = model(**inputs)
+                scores = torch.nn.functional.softmax(outputs.logits, dim=-1)
+                label_score = scores[:, 1] if model.config.id2label[1] in ["TOXIC", "OFFENSIVE"] else scores[:, 0]
+                score = label_score.item()
                 aspect_scores[aspect] = score
             reward = self._combine_aspect_scores(aspect_scores)
             rewards.append(reward)
         return rewards
 
-    def _get_continuous_score(self, result) -> float:
-        if result['label'] in ['TOXIC', 'OFFENSIVE']:
-            return result['score']  # Higher score indicates higher toxicity
+    def _get_continuous_score(self, score: float, label: str) -> float:
+        if label in ["TOXIC", "OFFENSIVE"]:
+            return score  # Higher score indicates higher toxicity
         else:
-            return 1.0 - result['score']  # Lower toxicity
+            return 1.0 - score  # Lower toxicity
 
     def _combine_aspect_scores(self, aspect_scores: Dict[str, float]) -> float:
         weights = {
@@ -80,18 +87,18 @@ class SafeLanguageModelTrainer:
         self.config = config
         self.device = config['device']
         self.tokenizer = AutoTokenizer.from_pretrained(config['model_name'])
-        self.base_model = AutoModelForCausalLM.from_pretrained(config['model_name']).to(self.device)
+        self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.base_model = AutoModelForCausalLMWithValueHead.from_pretrained(config['model_name']).to(self.device)
         self.model = AutoModelForCausalLMWithValueHead.from_pretrained(config['model_name']).to(self.device)
+        self.model.config.eos_token_id = self.tokenizer.eos_token_id
+        self.model.generation_config = self.model.config
+        self.base_model.config.eos_token_id = self.tokenizer.eos_token_id
         self.reward_model = RewardModel(config['toxicity_model_names'], self.device)
         self.ppo_config = PPOConfig(
-            model_name=config['model_name'],
-            learning_rate=config['learning_rate'],
-            batch_size=config['batch_size'],
-            forward_batch_size=config['forward_batch_size'],
-            log_with=config['log_with'],
-            logdir=config['logdir'],
+            learning_rate=float(config['learning_rate']),
+            batch_size=int(config['batch_size'])
         )
-        self.ppo_trainer = PPOTrainer(self.model, self.base_model, self.tokenizer, **vars(self.ppo_config))
+        self.ppo_trainer = PPOTrainer(self.ppo_config, self.base_model, self.model, self.tokenizer)
         self.constitutional_ai = ConstitutionalAI(ethical_guidelines=config['ethical_guidelines'])
         self.curriculum = self._create_curriculum()
         self.current_difficulty = 0
@@ -103,7 +110,7 @@ class SafeLanguageModelTrainer:
         dataset_stage1 = load_dataset('daily_dialog', split='train[:1%]')
         curriculum.append({'dataset': dataset_stage1, 'difficulty': 1})
         # Stage 2: Mixed data
-        dataset_stage2 = load_dataset('reddit_tifu', split='train[:1%]')
+        dataset_stage2 = load_dataset('reddit_tifu', 'short', split='train[:1%]')
         curriculum.append({'dataset': dataset_stage2, 'difficulty': 2})
         # Stage 3: Data likely to contain toxicity
         dataset_stage3 = load_dataset('civil_comments', split='train[:1%]')
@@ -123,7 +130,7 @@ class SafeLanguageModelTrainer:
     def _prepare_prompts(self, dataset):
         prompts = []
         for data in dataset:
-            prompt = data.get('text') or data.get('content') or ''
+            prompt = data.get('text') or data.get('content') or data.get('documents') or data.get('dialog') or ''
             if prompt:
                 prompts.append(prompt.strip())
         return prompts
@@ -134,29 +141,47 @@ class SafeLanguageModelTrainer:
             yield data[i:i + batch_size]
 
     def _train_batch(self, prompts):
-        prompt_tensors = [self.tokenizer.encode(prompt, return_tensors='pt').to(self.device) for prompt in prompts]
-
+        # Encode prompts and include attention mask
+        encoded_prompts = [self.tokenizer(prompt, return_tensors='pt', max_length=self.config['max_length'], 
+                                          truncation=True, padding=True) for prompt in prompts]
+        
+        prompt_tensors = [encoding['input_ids'].to(self.device) for encoding in encoded_prompts]
+        attention_masks = [encoding['attention_mask'].to(self.device) for encoding in encoded_prompts]
+    
         response_tensors = []
-        for prompt_tensor in prompt_tensors:
-            response = self.ppo_trainer.generate(prompt_tensor, max_length=self.config['max_length'], eos_token_id=self.tokenizer.eos_token_id)
+        for prompt_tensor, attention_mask in zip(prompt_tensors, attention_masks):
+            # Remove batch dimension if needed
+            prompt_tensor = prompt_tensor.squeeze(0)
+            
+            # Pass attention mask to generate
+            response = self.ppo_trainer.generate(
+                query_tensor=prompt_tensor, 
+                max_length=self.config['max_length'], 
+                eos_token_id=self.tokenizer.eos_token_id, 
+                pad_token_id=self.tokenizer.eos_token_id,
+                attention_mask=attention_mask
+            )
             response_tensors.append(response.squeeze())
-
+    
+        # Decode and process responses
         responses = [self.tokenizer.decode(response_tensor, skip_special_tokens=True) for response_tensor in response_tensors]
-
+    
         safe_responses = []
         for response in responses:
             if not self.constitutional_ai.evaluate(response):
                 response = self._adjust_response(response)
             safe_responses.append(response)
-
+    
+        # Compute rewards and train
         rewards = self.reward_model.compute_reward(safe_responses)
-
         self.ppo_trainer.step(prompt_tensors, response_tensors, rewards)
-
+    
+        # Log responses
         for prompt, response, reward in zip(prompts, safe_responses, rewards):
             print(f"Prompt: {prompt}")
             print(f"Response: {response}")
             print(f"Reward: {reward:.4f}\n")
+
 
     def _adjust_response(self, response):
         return "[Content removed due to violation of ethical guidelines.]"
