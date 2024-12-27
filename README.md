@@ -1,5 +1,19 @@
 # Generative AI with LLMs and Reinforcement Learning - OpenAI Project - Blended Learning
 
+
+## PPO for Detoxification
+
+`trl_ppo.py`: script for the entire pipeline.
+
+`simple.py`: a simple example.
+
+`Run Report.pdf`: report of the run on Google Colab A100.
+
+## LoRA
+
+See `LoRA/`
+
+
 ## Introduction Website and Meeting Notes
 
 Generative AI with LLMs and Reinforcement Learning - OpenAI Project
