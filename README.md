@@ -11,7 +11,7 @@
 
 ## LoRA
 
-See `LoRA/`
+See `LoRA`
 
 
 ## Introduction Website and Meeting Notes
